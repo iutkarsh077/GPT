@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/auth", "/share"];
+const AUTH_ROUTE = "/auth";
+const SHARE_ROUTE = "/share";
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
@@ -10,15 +11,17 @@ export const config = {
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const hasSessionCookie = Boolean(request.cookies.get("connect.sid")?.value);
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route),
-  );
+  const isAuthRoute =
+    pathname === AUTH_ROUTE || pathname.startsWith(`${AUTH_ROUTE}/`);
+  const isShareRoute =
+    pathname === SHARE_ROUTE || pathname.startsWith(`${SHARE_ROUTE}/`);
+  const canAccessWithoutSession = isAuthRoute || isShareRoute;
 
-  if (!hasSessionCookie && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/auth", request.url));
+  if (!hasSessionCookie && !canAccessWithoutSession) {
+    return NextResponse.redirect(new URL(AUTH_ROUTE, request.url));
   }
 
-  if (hasSessionCookie && pathname.startsWith("/auth")) {
+  if (hasSessionCookie && isAuthRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
