@@ -2,6 +2,10 @@
 
 Full-stack chat app: **FastAPI** (AI / RAG), **Express** (sessions, Google OAuth, MongoDB), and **Next.js** (UI).
 
+<video src="https://drive.google.com/uc?export=download&id=13Q2S9cYKqMYD858XmX1hyywBVRHHwswY" controls width="100%">
+  <a href="https://drive.google.com/file/d/13Q2S9cYKqMYD858XmX1hyywBVRHHwswY/view?usp=sharing">Watch demo video</a>
+</video>
+
 ![GPT chat UI — sidebar, conversation, and message input](https://res.cloudinary.com/dakddv1pm/image/upload/v1777199107/posts/ffzzpmpzaiien3bdkjmw.png)
 
 ## Layout
