@@ -33,6 +33,10 @@ app.use(passport.session());
 app.use("/", route);
 app.use("/api", route);
 
+app.get("/health",(req, res)=>{
+  return res.send("Hey everything is fine")
+})
+
 dbConnect()
   .then(() => {
     app.listen(port, () => {
