@@ -1,6 +1,12 @@
 "use client";
 
 import api from "@/helpers/api";
+import {
+  connectSocket,
+  disconnectSocket,
+  joinChatRoom,
+  leaveChatRoom,
+} from "@/helpers/socket";
 import { AxiosError } from "axios";
 import {
   createContext,
@@ -16,26 +22,37 @@ import { toast } from "sonner";
 
 type User = {
   _id: string;
-  email: string;
-  avatar: string;
-  displayName: string;
+  email?: string | null;
+  avatar?: string | null;
+  displayName?: string | null;
+  username?: string | null;
+  profileUrl?: string | null;
 };
 
 interface Message {
   _id?: string;
-  user?: string;
+  user?:
+    | string
+    | {
+        _id?: string;
+        avatar?: string | null;
+        displayName?: string | null;
+        username?: string | null;
+      };
   chatSession?: string;
   query: string;
   content: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  senderAvatar?: string | null;
+  senderName?: string | null;
 }
 
 export interface ChatId {
   chatId: string;
   title: string;
+  ownerId?: string;
 }
-
 
 type AuthContextType = {
   user: User | null;
@@ -49,6 +66,9 @@ type AuthContextType = {
   setPrompt: (value: string) => void;
   allChatId: ChatId[];
   setAllChatId: Dispatch<SetStateAction<ChatId[]>>;
+  remotePendingQuery: string | null;
+  remotePendingUser: string | null;
+  remotePendingAvatar: string | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,6 +81,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [chatId, setChatId] = useState<ChatId | null>(null);
   const [allChatId, setAllChatId] = useState<ChatId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [remotePendingQuery, setRemotePendingQuery] = useState<string | null>(
+    null,
+  );
+  const [remotePendingUser, setRemotePendingUser] = useState<string | null>(
+    null,
+  );
+  const [remotePendingAvatar, setRemotePendingAvatar] = useState<string | null>(
+    null,
+  );
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -82,15 +111,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(res.data.data);
         localStorage.setItem("user", JSON.stringify(res.data.data));
       } catch (error) {
-        // console.log(error);
-        const status = error instanceof AxiosError ? error.response?.status : null;
+        const status =
+          error instanceof AxiosError ? error.response?.status : null;
         setUser(null);
         setMessages([]);
         setChatId(null);
         setAllChatId([]);
         localStorage.removeItem("user");
+        disconnectSocket();
 
         if (status === 401) {
+          try {
+            await api.get("/api/logout");
+          } catch {
+            // Session is already invalid; still send the user to login.
+          }
           router.replace("/auth");
           return;
         }
@@ -113,7 +148,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const result = await api.get("/api/all-chat-session");
         setAllChatId(result.data.data);
       } catch (error) {
-        // console.log(error);
         const message =
           error instanceof AxiosError
             ? error.response?.data?.message || error.message
@@ -124,28 +158,119 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     getAllChatSessions();
   }, [pathname, user?._id]);
 
-  const handleCreateNewChat = async () => {
-    try {
-      const res = await api.get("/api/create-new-session");
-      const newChat = {
-        chatId: res.data.data.chatId,
-        title: res.data?.data?.title || "New Chat"
-      };
-      const previousChatId = chatId?.chatId;
-      setChatId(newChat);
-      setMessages([]);
-      setAllChatId((current) => [
-        newChat,
-        ...current.filter((chat) => chat.chatId !== previousChatId),
-      ]);
-    } catch (error) {
-      // console.log(error);
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message || error.message
-          : "Internal Server error";
-      toast.error(message);
+  useEffect(() => {
+    if (!user?._id || pathname.startsWith("/share/") || pathname === "/auth") {
+      disconnectSocket();
+      return;
     }
+
+    const socket = connectSocket();
+    if (!socket) return;
+
+    const onQueryStarted = (payload: {
+      chatId: string;
+      query: string;
+      userId: string;
+      displayName?: string;
+      avatar?: string | null;
+    }) => {
+      if (payload.chatId !== chatId?.chatId) return;
+      if (String(payload.userId) === String(user._id)) return;
+      setRemotePendingQuery(payload.query);
+      setRemotePendingUser(payload.displayName || "Collaborator");
+      setRemotePendingAvatar(payload.avatar || null);
+    };
+
+    const onMessage = (payload: {
+      chatId: string;
+      message: Message;
+      chatSession?: ChatId;
+    }) => {
+      if (payload.chatId !== chatId?.chatId) return;
+
+      setRemotePendingQuery(null);
+      setRemotePendingUser(null);
+      setRemotePendingAvatar(null);
+
+      setMessages((current) => {
+        const incomingId = payload.message._id
+          ? String(payload.message._id)
+          : null;
+        if (
+          incomingId &&
+          current.some((m) => m._id && String(m._id) === incomingId)
+        ) {
+          return current;
+        }
+        if (
+          current.some(
+            (m) =>
+              m.query === payload.message.query &&
+              m.content === payload.message.content,
+          )
+        ) {
+          return current;
+        }
+        return [...current, payload.message];
+      });
+
+      if (payload.chatSession) {
+        setChatId((prev) => ({
+          chatId: payload.chatSession!.chatId,
+          title: payload.chatSession!.title || prev?.title || "New Chat",
+          ownerId: payload.chatSession!.ownerId || prev?.ownerId,
+        }));
+        setAllChatId((prev) => {
+          const next = {
+            chatId: payload.chatSession!.chatId,
+            title: payload.chatSession!.title || "New Chat",
+            ownerId: payload.chatSession!.ownerId,
+          };
+          return [next, ...prev.filter((c) => c.chatId !== next.chatId)];
+        });
+      }
+    };
+
+    const onQueryFailed = (payload: { chatId: string; userId: string }) => {
+      if (payload.chatId !== chatId?.chatId) return;
+      if (String(payload.userId) === String(user._id)) return;
+      setRemotePendingQuery(null);
+      setRemotePendingUser(null);
+      setRemotePendingAvatar(null);
+    };
+
+    socket.on("chat:query-started", onQueryStarted);
+    socket.on("chat:message", onMessage);
+    socket.on("chat:query-failed", onQueryFailed);
+
+    return () => {
+      socket.off("chat:query-started", onQueryStarted);
+      socket.off("chat:message", onMessage);
+      socket.off("chat:query-failed", onQueryFailed);
+    };
+  }, [user?._id, chatId?.chatId, pathname]);
+
+  useEffect(() => {
+    if (!user?._id || !chatId?.chatId) return;
+    if (pathname.startsWith("/share/") || pathname === "/auth") return;
+
+    joinChatRoom(chatId.chatId);
+
+    return () => {
+      leaveChatRoom(chatId.chatId);
+    };
+  }, [user?._id, chatId?.chatId, pathname]);
+
+  const handleCreateNewChat = () => {
+    if (chatId?.chatId) {
+      leaveChatRoom(chatId.chatId);
+    }
+    setMessages([]);
+    setChatId(null);
+    setRemotePendingQuery(null);
+    setRemotePendingUser(null);
+    setRemotePendingAvatar(null);
+    router.push("/chat");
   };
 
   return (
@@ -162,6 +287,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setMessages,
         allChatId,
         setAllChatId,
+        remotePendingQuery,
+        remotePendingUser,
+        remotePendingAvatar,
       }}
     >
       {children}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, LogOut, MessageSquare, MoreHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +10,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarInput,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -18,7 +17,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { ChatId, useAuth } from "@/context/ChatContext";
+import { useAuth } from "@/context/ChatContext";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import api from "@/helpers/api";
@@ -27,22 +26,11 @@ const CustomSidebar = () => {
   const { handleCreateNewChat, allChatId, setMessages, setChatId, setAllChatId } =
     useAuth();
   const router = useRouter();
+  const params = useParams<{ chatid?: string }>();
+  const activeChatId = params.chatid;
 
-  const handleGetAllChatByChatId = async (chat: ChatId) => {
-    try {
-      const result = await api.get(
-        `/api/get-chat-by-chatid?chatId=${chat.chatId}`,
-      );
-      // console.log("result is : ", result)
-      setMessages(result.data?.data?.chats);
-      setChatId(chat);
-    } catch (error) {
-      const message =
-        error instanceof AxiosError
-          ? error.message
-          : "Failed to get Chat details";
-      toast.error(message);
-    }
+  const handleSelectChat = (chatId: string) => {
+    router.push(`/chat/${chatId}`);
   };
 
   const handleLogout = async () => {
@@ -89,7 +77,6 @@ const CustomSidebar = () => {
                 <SidebarMenuButton
                   className="hover:cursor-pointer hover:bg-gray-200 ease-in-out duration-300 transition-all"
                   onClick={handleCreateNewChat}
-                  isActive
                   tooltip="Chats"
                 >
                   <MessageSquare className="size-4" />
@@ -106,20 +93,20 @@ const CustomSidebar = () => {
           <SidebarGroupLabel>Recent</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {allChatId?.map((chat, index) => (
-                <SidebarMenuItem key={index}>
+              {allChatId?.map((chat) => (
+                <SidebarMenuItem key={chat.chatId}>
                   <SidebarMenuButton
-                    onClick={() => handleGetAllChatByChatId(chat)}
+                    onClick={() => handleSelectChat(chat.chatId)}
                     className="hover:cursor-pointer hover:bg-gray-200 ease-in-out duration-300 transition-all"
-                    isActive={index === 0}
-                    tooltip={chat}
+                    isActive={activeChatId === chat.chatId}
+                    tooltip={chat.title}
                   >
                     <MessageSquare className="size-4" />
                     <span>{chat.title}</span>
                   </SidebarMenuButton>
                   <SidebarMenuAction
                     showOnHover
-                    aria-label={`More for ${chat}`}
+                    aria-label={`More for ${chat.title}`}
                   >
                     <MoreHorizontal className="size-4" />
                   </SidebarMenuAction>

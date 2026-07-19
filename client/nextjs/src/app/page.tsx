@@ -1,9 +1,5 @@
-import MainHomePage from "@/components/custom/Main";
+import { redirect } from "next/navigation";
 
 export default function Home(){
-  return (
-    <div>
-      <MainHomePage/>
-    </div>
-  )
+  return redirect("/chat");
 }

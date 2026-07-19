@@ -1,4 +1,5 @@
 import ChatSession from "../models/Chat_Session.js";
+import { normalizeEmail } from "../helpers/chatAccess.js";
 
 const GetAllChatSessions = async (req, res) => {
   try {
@@ -10,18 +11,52 @@ const GetAllChatSessions = async (req, res) => {
     }
 
     const userId = req.user._id;
+    const normalizedEmail = normalizeEmail(req.user.email);
 
-    const result = await ChatSession.find(
-      {
-        user: userId,
-      },
-      {
-        chatId: 1,
-        title: 1,
-      },
-    ).sort({ createdAt: -1 });
+    const filter = normalizedEmail
+      ? {
+          $or: [
+            { user: userId },
+            {
+              $expr: {
+                $gt: [
+                  {
+                    $size: {
+                      $filter: {
+                        input: { $ifNull: ["$peopleCollaborate", []] },
+                        as: "e",
+                        cond: {
+                          $eq: [
+                            {
+                              $toLower: {
+                                $trim: { input: { $toString: "$$e" } },
+                              },
+                            },
+                            normalizedEmail,
+                          ],
+                        },
+                      },
+                    },
+                  },
+                  0,
+                ],
+              },
+            },
+          ],
+        }
+      : { user: userId };
 
-    // console.log("Got all chat sessions", result);
+    const sessions = await ChatSession.find(filter, {
+      chatId: 1,
+      title: 1,
+      user: 1,
+    }).sort({ createdAt: -1 });
+
+    const result = sessions.map((session) => ({
+      chatId: session.chatId,
+      title: session.title,
+      ownerId: String(session.user),
+    }));
 
     return res.status(200).json({
       message: "Successfully Got all the sessions",

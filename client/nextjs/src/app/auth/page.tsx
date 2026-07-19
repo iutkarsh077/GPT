@@ -1,4 +1,4 @@
-import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 
 const AuthUser = () => {
   return (
@@ -18,15 +18,15 @@ const AuthUser = () => {
 
         <div className="rounded-lg border bg-card p-3 shadow-sm">
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
+            href={`${process.env.NEXT_PUBLIC_API_URL}/api/auth/github`}
             className="flex h-12 w-full items-center justify-center gap-3 rounded-md border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <FcGoogle className="size-6" />
-            <span>Continue with Google</span>
+            <FaGithub className="size-6" />
+            <span>Continue with GitHub</span>
           </a>
 
           <p className="mt-4 px-2 text-center text-xs leading-5 text-muted-foreground">
-            You will be redirected to Google to finish authentication.
+            You will be redirected to GitHub to finish authentication.
           </p>
         </div>
       </div>

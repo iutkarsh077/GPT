@@ -58,6 +58,11 @@ const ChatSessionSchema = new Schema(
       ],
       default: [],
     },
+
+    peopleCollaborate: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
