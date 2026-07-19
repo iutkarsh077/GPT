@@ -11,15 +11,21 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1090.0",
+    "@aws-sdk/s3-request-presigner": "^3.1090.0",
     "axios": "^1.15.2",
+    "connect-mongo": "^6.0.0",
     "cookie-session": "^2.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
+    "mongodb": "^7.5.0",
     "mongoose": "^9.5.0",
+    "nodemailer": "^9.0.3",
     "nodemon": "^3.1.14",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-github2": "^0.1.12",
+    "socket.io": "^4.8.3"
   }
 }

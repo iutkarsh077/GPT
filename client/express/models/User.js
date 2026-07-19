@@ -1,22 +1,38 @@
 import mongoose, { Schema } from "mongoose";
 
-
 const UserSchema = new Schema({
-    googleId: {
-        required: true,
-        unique: true,
-        type: String
-    },
-    email: {
-        type: String
-    },
-    displayName: {
-        type: String
-    },
-    avatar: {
-        type: String
-    },
-})
+  githubId: {
+    required: true,
+    unique: true,
+    type: String,
+  },
+  username: {
+    type: String,
+  },
+  email: {
+    type: String,
+  },
+  displayName: {
+    type: String,
+  },
+  avatar: {
+    type: String,
+  },
+  profileUrl: {
+    type: String,
+  },
+  githubAccessToken: {
+    type: String,
+    select: false,
+  },
+});
+
+UserSchema.set("toJSON", {
+  transform(_doc, ret) {
+    delete ret.githubAccessToken;
+    return ret;
+  },
+});
 
 const User = mongoose.model("User", UserSchema);
 

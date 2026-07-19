@@ -6,13 +6,13 @@ export const MAX_CHAT_SESSIONS_PER_USER = 2;
 export const createChatSessionForUser = async (userId) => {
   const totalSessions = await ChatSession.countDocuments({ user: userId });
 
-  if (totalSessions >= MAX_CHAT_SESSIONS_PER_USER) {
-    const limitError = new Error(
-      `You can create only ${MAX_CHAT_SESSIONS_PER_USER} chat sessions due to token limits.`,
-    );
-    limitError.name = "ChatSessionLimitError";
-    throw limitError;
-  }
+  // if (totalSessions >= MAX_CHAT_SESSIONS_PER_USER) {
+  //   const limitError = new Error(
+  //     `You can create only ${MAX_CHAT_SESSIONS_PER_USER} chat sessions due to token limits.`,
+  //   );
+  //   limitError.name = "ChatSessionLimitError";
+  //   throw limitError;
+  // }
 
   return ChatSession.create({
     chatId: crypto.randomUUID(),
