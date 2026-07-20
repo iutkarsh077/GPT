@@ -128,3 +128,20 @@
     @apply font-sans;
   }
 }
+
+
+
+/* Hide scrollbar for Chrome, Safari and Edge */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for IE and old Edge */
+.no-scrollbar {
+  -ms-overflow-style: none;
+}

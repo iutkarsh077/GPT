@@ -171,7 +171,7 @@ def health_check():
 
 async def GetChatTitleSuggestion(query: str, content: str):
     result = await client.responses.create(
-        model="gpt-5-nano",
+        model="gpt-5.4-mini",
         instructions=(
             "Generate a chat title using ONLY 2 or 3 words taken EXACTLY from the user query. "
             "Do NOT add new words."
@@ -243,7 +243,7 @@ async def QueryUserQuestions(request: QueryRequest):
         )
     else:
         response = await client.responses.create(
-            model="gpt-5-nano",
+            model="gpt-5.4-mini",
             instructions=llm_instructions,
             input=f"""
             User information:

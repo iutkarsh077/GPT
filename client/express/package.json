@@ -24,6 +24,7 @@
     "mongoose": "^9.5.0",
     "nodemailer": "^9.0.3",
     "nodemon": "^3.1.14",
+    "openai": "^6.48.0",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "socket.io": "^4.8.3"

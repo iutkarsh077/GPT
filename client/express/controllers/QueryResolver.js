@@ -24,7 +24,8 @@ const QueryResolver = async (req, res) => {
         message: "Unauthorized",
       });
     }
-    let { query, chatId } = req.body;
+    let { query, chatId, isGithubAgentOn } = req.body;
+    const agentOn = isGithubAgentOn === true;
 
     if (!query) {
       return res.status(400).json({
@@ -78,33 +79,39 @@ const QueryResolver = async (req, res) => {
     //   });
     // }
 
-    const latestChats = await Chat.find(
-      {
-        chatSession: chatSession._id,
-      },
-      { query: 1, content: 1, _id: 0 },
-    )
-      .limit(10)
-      .sort({ createdAt: -1 });
+    let answer = "";
+    let latestChats = [];
+    let owner = null;
 
-    const owner = await User.findById(chatSession.user).select(
-      "+githubAccessToken username displayName",
-    );
+    if (agentOn) {
+      latestChats = await Chat.find(
+        {
+          chatSession: chatSession._id,
+        },
+        { query: 1, content: 1, _id: 0 },
+      )
+        .limit(10)
+        .sort({ createdAt: -1 });
 
-    if (!owner) {
-      return res.status(500).json({
-        status: false,
-        message: "Chat owner account not found",
-      });
-    }
+      owner = await User.findById(chatSession.user).select(
+        "+githubAccessToken username displayName",
+      );
 
-    const actingAsCollaborator = !isChatOwner(chatSession, req.user);
-    if (actingAsCollaborator && !owner.githubAccessToken) {
-      return res.status(403).json({
-        status: false,
-        message:
-          "Chat owner has no GitHub access token. Ask the owner to sign in with GitHub again.",
-      });
+      if (!owner) {
+        return res.status(500).json({
+          status: false,
+          message: "Chat owner account not found",
+        });
+      }
+
+      const actingAsCollaborator = !isChatOwner(chatSession, req.user);
+      if (actingAsCollaborator && !owner.githubAccessToken) {
+        return res.status(403).json({
+          status: false,
+          message:
+            "Chat owner has no GitHub access token. Ask the owner to sign in with GitHub again.",
+        });
+      }
     }
 
     emitToChat(chatSession.chatId, "chat:query-started", {
@@ -115,35 +122,41 @@ const QueryResolver = async (req, res) => {
       avatar: req.user.avatar || null,
     });
 
-    const result = await axios.post(
-      `${python_uri}/query`,
-      {
-        query,
-        chat_id: chatId.chatId,
-        user_info: {
-          _id: req.user._id,
-          username: req.user.username,
-          displayName: req.user.displayName,
-          email: req.user.email,
-          avatar: req.user.avatar,
+    if (agentOn) {
+      const result = await axios.post(
+        `${python_uri}/query`,
+        {
+          query,
+          chat_id: chatId.chatId,
+          user_info: {
+            _id: req.user._id,
+            username: req.user.username,
+            displayName: req.user.displayName,
+            email: req.user.email,
+            avatar: req.user.avatar,
+          },
+          user_id: String(chatSession.user),
+          chat_title: chatId.title,
+          latestChats: latestChats.reverse(),
+          github_access_token: owner.githubAccessToken || null,
+          github_username: owner.username || null,
         },
-        user_id: String(chatSession.user),
-        chat_title: chatId.title,
-        latestChats: latestChats.reverse(),
-        github_access_token: owner.githubAccessToken || null,
-        github_username: owner.username || null,
-      },
-      { timeout: 180000 },
-    );
+        { timeout: 180000 },
+      );
 
-    if (chatId.title === "New Chat") {
-      chatSession.title = result.data.chat_title;
+      answer = result.data.data;
+
+      if (chatId.title === "New Chat") {
+        chatSession.title = result.data.chat_title;
+      }
+    } else if (chatId.title === "New Chat") {
+      chatSession.title = query.trim().slice(0, 40);
     }
 
     const saveChat = await Chat.create({
       user: req.user._id,
       chatSession: chatSession._id,
-      content: result.data.data,
+      content: answer,
       query: query,
     });
 
@@ -174,7 +187,7 @@ const QueryResolver = async (req, res) => {
     return res.status(200).json({
       message: "Query Resolved Successfully",
       status: true,
-      data: result.data.data,
+      data: answer,
       chatSession: messagePayload.chatSession,
       messageId: String(saveChat._id),
     });
