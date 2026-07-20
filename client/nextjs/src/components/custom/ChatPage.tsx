@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Switch } from "@/components/ui/switch"
 import { ArrowUp, Loader2, Paperclip, Share2, UserRound, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -134,65 +135,67 @@ const MessageItem = memo(
         </div>
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
-          <FaInfinity className="size-4" />
+      {message.content?.trim() ? (
+        <div className="flex gap-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
+            <FaInfinity className="size-4" />
+          </div>
+          <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
+            <ReactMarkdown
+              remarkPlugins={markdownRemarkPlugins}
+              components={{
+                p: ({ children }) => (
+                  <p className="mb-3 last:mb-0">
+                    {renderGeneratedText(children, isAnimated)}
+                  </p>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-foreground">
+                    {renderGeneratedText(
+                      children,
+                      isAnimated,
+                      "font-semibold text-foreground",
+                    )}
+                  </strong>
+                ),
+                ul: ({ children }) => (
+                  <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
+                    {children}
+                  </ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
+                    {children}
+                  </ol>
+                ),
+                li: ({ children }) => <li>{children}</li>,
+                code: ({ children }) => (
+                  <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
+                    {children}
+                  </code>
+                ),
+                pre: ({ children }) => (
+                  <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
+                    {children}
+                  </pre>
+                ),
+                a: ({ children, href }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-sky-700 underline underline-offset-2"
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
         </div>
-        <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
-          <ReactMarkdown
-            remarkPlugins={markdownRemarkPlugins}
-            components={{
-              p: ({ children }) => (
-                <p className="mb-3 last:mb-0">
-                  {renderGeneratedText(children, isAnimated)}
-                </p>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-foreground">
-                  {renderGeneratedText(
-                    children,
-                    isAnimated,
-                    "font-semibold text-foreground",
-                  )}
-                </strong>
-              ),
-              ul: ({ children }) => (
-                <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
-                  {children}
-                </ul>
-              ),
-              ol: ({ children }) => (
-                <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
-                  {children}
-                </ol>
-              ),
-              li: ({ children }) => <li>{children}</li>,
-              code: ({ children }) => (
-                <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
-                  {children}
-                </code>
-              ),
-              pre: ({ children }) => (
-                <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
-                  {children}
-                </pre>
-              ),
-              a: ({ children, href }) => (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-sky-700 underline underline-offset-2"
-                >
-                  {children}
-                </a>
-              ),
-            }}
-          >
-            {message.content}
-          </ReactMarkdown>
-        </div>
-      </div>
+      ) : null}
     </div>
     );
   },
@@ -230,6 +233,7 @@ const ChatPage = () => {
   const allowedFileTypes = ["application/pdf"];
   const maxFileSize = 10 * 1024 * 1024; // 10MB
   const [isCollaboratePeopleChatOpen, setIsCollaboratePeopleChatOpen] = useState(false);
+  const [isGithubAgentOn, setIsGithubAgentOn] = useState(false);
   
   useEffect(() => {
     refForChat.current?.scrollIntoView({
@@ -278,6 +282,7 @@ const ChatPage = () => {
       const result = await api.post("/api/query-resolver", {
         query: text,
         chatId: chatId,
+        isGithubAgentOn: isGithubAgentOn,
       });
       // console.log(result.data);
       const newMessageId = result.data.messageId || Date.now().toString();
@@ -503,7 +508,7 @@ const ChatPage = () => {
                   </div>
                 </div>
 
-                <AssistantMessageSkeleton />
+                {isGithubAgentOn ? <AssistantMessageSkeleton /> : null}
               </div>
             )}
             {!isSubmitting && remotePendingQuery && (
@@ -551,7 +556,7 @@ const ChatPage = () => {
               <X className="size-2 hover:cursor-pointer" onClick={() => setFileUploaded(null)} />
             </div>
           )}
-          <div className="flex items-end gap-2">
+          <div className="flex items-center gap-2">
             <div className="w-full relative">
               <textarea
                 onKeyDown={(e) => {
@@ -565,7 +570,7 @@ const ChatPage = () => {
                 placeholder="Message GPT (max 2 sessions, 4 conversations per session)"
                 rows={1}
                 disabled={isSubmitting}
-                className="max-h-40 min-h-10 flex-1 w-full resize-none bg-transparent pl-9 px-2 py-2 text-sm outline-none flex items-center placeholder:text-muted-foreground"
+                className="max-h-40 min-h-10 flex-1 w-full resize-none bg-transparent pl-9 px-2 py-2 text-sm outline-none flex items-center placeholder:text-muted-foreground no-scrollbar"
               />
               <div className="absolute left-0 top-1/2 -translate-y-1/2 hover:bg-gray-200 hover:cursor-pointer rounded-md p-1">
                 <input
@@ -585,10 +590,14 @@ const ChatPage = () => {
                 </label>
               </div>
             </div>
+
+            <div className="flex items-center gap-2 max-w-fit ">
+              <span className="text-sm text-black font-medium whitespace-nowrap">Github Agent</span>
+              <Switch checked={isGithubAgentOn} onCheckedChange={setIsGithubAgentOn} />
+            </div>
             {String(chatId?.ownerId) === String(user?._id) && (
               <Button variant="outline" className="gap-1.5" onClick={()=>setIsCollaboratePeopleChatOpen(true)}>
                 <Users className="size-4" />
-                Add Collaborators
               </Button>
             )}
             <Button

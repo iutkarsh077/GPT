@@ -202,15 +202,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ) {
           return current;
         }
-        if (
-          current.some(
-            (m) =>
-              m.query === payload.message.query &&
-              m.content === payload.message.content,
-          )
-        ) {
-          return current;
-        }
         return [...current, payload.message];
       });
 

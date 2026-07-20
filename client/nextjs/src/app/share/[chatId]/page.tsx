@@ -86,58 +86,60 @@ const SharedChatPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
-                      <FaInfinity className="size-4" />
+                  {message.content?.trim() ? (
+                    <div className="flex gap-3">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
+                        <FaInfinity className="size-4" />
+                      </div>
+                      <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => (
+                              <p className="mb-3 last:mb-0">{children}</p>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">
+                                {children}
+                              </strong>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
+                                {children}
+                              </ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
+                                {children}
+                              </ol>
+                            ),
+                            code: ({ children }) => (
+                              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
+                                {children}
+                              </code>
+                            ),
+                            pre: ({ children }) => (
+                              <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
+                                {children}
+                              </pre>
+                            ),
+                            a: ({ children, href }) => (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-medium text-sky-700 underline underline-offset-2"
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                     </div>
-                    <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          p: ({ children }) => (
-                            <p className="mb-3 last:mb-0">{children}</p>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold text-foreground">
-                              {children}
-                            </strong>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
-                              {children}
-                            </ol>
-                          ),
-                          code: ({ children }) => (
-                            <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
-                              {children}
-                            </code>
-                          ),
-                          pre: ({ children }) => (
-                            <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
-                              {children}
-                            </pre>
-                          ),
-                          a: ({ children, href }) => (
-                            <a
-                              href={href}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-sky-700 underline underline-offset-2"
-                            >
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
+                  ) : null}
                 </div>
               ))}
             </div>

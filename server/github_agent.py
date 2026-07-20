@@ -295,7 +295,7 @@ Rules:
 github_code_agent = Agent[GithubAgentContext](
     name="GitHub Code Assistant",
     instructions=GITHUB_AGENT_INSTRUCTIONS,
-    model="gpt-5-nano",
+    model="gpt-5.4-mini",
     tools=[
         list_user_repositories,
         list_repository_files,
