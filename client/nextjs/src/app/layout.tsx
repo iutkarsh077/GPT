@@ -26,7 +26,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-W2WSCGFEQB"
+          src="https://www.googletagmanager.com/gtag/js?id=G-SFD1RMC4FF"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -34,7 +34,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-W2WSCGFEQB');
+            gtag('config', 'G-SFD1RMC4FF');
           `}
         </Script>
         <AuthProvider>
