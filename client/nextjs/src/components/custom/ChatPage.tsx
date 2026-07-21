@@ -472,10 +472,10 @@ const ChatPage = () => {
                   <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                     What can I help you with?
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  {/* <p className="text-sm text-muted-foreground">
                     You can create up to 2 chat sessions, with up to 4
                     conversations per session (token limit).
-                  </p>
+                  </p> */}
                 </div>
               </div>
             )}
@@ -567,7 +567,7 @@ const ChatPage = () => {
                 }}
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
-                placeholder="Message GPT (max 2 sessions, 4 conversations per session)"
+                placeholder="Message GPT"
                 rows={1}
                 disabled={isSubmitting}
                 className="max-h-40 min-h-10 flex-1 w-full resize-none bg-transparent pl-9 px-2 py-2 text-sm outline-none flex items-center placeholder:text-muted-foreground no-scrollbar"
