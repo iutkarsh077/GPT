@@ -634,6 +634,7 @@ const ChatPage = () => {
               <span className="text-sm text-black font-medium whitespace-nowrap">Github Agent</span>
               <Switch checked={isGithubAgentOn} onCheckedChange={setIsGithubAgentOn} />
             </div>
+            {/* Owner will only see the dropdown menu */}
             {
               String(chatId?.ownerId) === String(user?._id) && (
                 <div className="relative">
