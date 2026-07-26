@@ -23,6 +23,7 @@ type ListGithubRepoProps = {
     setRepos: Dispatch<SetStateAction<IGithubRepo[] | null>>;
 };
 
+// This will show the list of github repos and allow the user to toggle the code review on/off
 const ListGithubRepo = ({ isOpen, onClose, repos, isLoading, setRepos }: ListGithubRepoProps) => {
 
 
@@ -64,6 +65,7 @@ const ListGithubRepo = ({ isOpen, onClose, repos, isLoading, setRepos }: ListGit
         }
     };
 
+    // This is a loading state for the dialog
     if (isLoading) {
         return (
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
