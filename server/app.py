@@ -9,12 +9,12 @@ import asyncio
 from io import BytesIO
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient, models
-from typing import List
+from typing import List, Optional
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client.models import PayloadSchemaType, VectorParams, Distance
-from constant import llm_instructions
-from github_agent import run_github_code_agent
+from constant import llm_instructions, PR_REVIEW_INSTRUCTIONS
+from github_agent import run_github_code_agent, read_github_file
 from pypdf import PdfReader
 import boto3
 
@@ -41,6 +41,35 @@ class EmbedFileRequest(BaseModel):
     key: str
     user_id: str
     chat_id: str
+
+
+class GitHubPRFile(BaseModel):
+    sha: str
+    filename: str
+    status: str
+    additions: int
+    deletions: int
+    changes: int
+    blob_url: str
+    raw_url: str
+    contents_url: str
+    patch: Optional[str] = None
+
+
+class GitHubPRReviewRequest(BaseModel):
+    files: List[GitHubPRFile]
+    github_access_token: str
+    owner: str
+    repo: str
+    head_sha: str
+
+
+class GitHubPRReviewReport(BaseModel):
+    summary: str
+    key_changes: str
+    issues_found: str
+    recommendations: str
+
 
 NODEJS_BACKEND_URI = os.environ.get("NODEJS_BACKEND_URI")
 
@@ -293,3 +322,100 @@ async def QueryUserQuestions(request: QueryRequest):
         "data": answer,
         "chat_title": title
     }
+
+
+
+@app.post("/github-pr-review")
+async def GithubPReview(request: GitHubPRReviewRequest):
+    try:
+        async def load_file_with_content(f: GitHubPRFile) -> dict:
+            if f.status == "removed":
+                current_content = "(file removed in this PR — no current content on head)"
+            else:
+                current_content = await read_github_file(
+                    token=request.github_access_token,
+                    owner=request.owner,
+                    repo=request.repo,
+                    path=f.filename,
+                    ref=request.head_sha,
+                )
+
+            return {
+                "sha": f.sha,
+                "filename": f.filename,
+                "status": f.status,
+                "additions": f.additions,
+                "deletions": f.deletions,
+                "changes": f.changes,
+                "blob_url": f.blob_url,
+                "raw_url": f.raw_url,
+                "contents_url": f.contents_url,
+                "current_content": current_content,
+                "patch": f.patch or "(no patch available — binary file or patch omitted by GitHub)",
+            }
+
+        files_payload = await asyncio.gather(
+            *[load_file_with_content(f) for f in request.files]
+        )
+
+        file_sections = []
+        for index, file in enumerate(files_payload, start=1):
+            file_sections.append(
+                f"""### File {index}: {file['filename']}
+                - sha: {file['sha']}
+                - status: {file['status']}
+                - additions: {file['additions']}
+                - deletions: {file['deletions']}
+                - changes: {file['changes']}
+                - blob_url: {file['blob_url']}
+                - raw_url: {file['raw_url']}
+                - contents_url: {file['contents_url']}
+
+                Current file content at PR head (`{request.head_sha}`):
+                ```
+                {file['current_content']}
+                ```
+
+                Full patch/diff:
+                ```diff
+                {file['patch']}
+                ```"""
+            )
+
+        response = await client.responses.parse(
+            model="gpt-5.4",
+            instructions=PR_REVIEW_INSTRUCTIONS,
+            input=f"""Thoroughly review this pull request for {request.owner}/{request.repo}.
+
+            For each changed file you have:
+            1. the current file content at the PR head commit
+            2. the unified patch/diff
+
+            Use BOTH together — read the current file for surrounding context, and the patch to see exactly what changed.
+
+            Total changed files: {len(files_payload)}
+            Head SHA: {request.head_sha}
+
+            {chr(10).join(file_sections)}
+            """,
+            text_format=GitHubPRReviewReport,
+        )
+
+        report = response.output_parsed
+        if report is None:
+            raise ValueError("LLM returned no structured PR review")
+
+        return {
+            "status": True,
+            "message": "PR reviewed successfully",
+            "summary": report.summary,
+            "key_changes": report.key_changes,
+            "issues_found": report.issues_found,
+            "recommendations": report.recommendations,
+        }
+    except Exception as e:
+        print(e)
+        return {
+            "status": False,
+            "message": "Failed to review PR",
+        }
