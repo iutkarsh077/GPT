@@ -64,6 +64,7 @@ const ListGithubRepo = ({ isOpen, onClose, repos, isLoading, setRepos }: ListGit
         }
     };
 
+    // This is a loading state for the dialog
     if (isLoading) {
         return (
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
