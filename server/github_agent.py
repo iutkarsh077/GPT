@@ -117,6 +117,17 @@ async def _read_file(
     return decoded
 
 
+async def read_github_file(
+    *,
+    token: str,
+    owner: str,
+    repo: str,
+    path: str,
+    ref: str | None = None,
+) -> str:
+    """Public helper to read a file from GitHub (used by PR review)."""
+    return await _read_file(token, owner, repo, path, ref=ref)
+
 @function_tool
 async def list_user_repositories(
     wrapper: RunContextWrapper[GithubAgentContext],

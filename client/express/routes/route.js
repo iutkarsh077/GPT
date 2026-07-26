@@ -12,6 +12,8 @@ import GetSharedChat from "../controllers/GetSharedChat.js";
 import { embedFile, getUploadUrl } from "../controllers/S3upload.js";
 import GetGithubRepos from "../controllers/GetGithubRepos.js";
 import { GetPeopleCollaborate, RemoveCollaborator, SendEmailInvite } from "../controllers/CollaboratePeople.js";
+import ListGithubRepo, { EnableDisableCodeReview } from "../controllers/ListGithubRepo.js";
+import { GithubWebhook } from "../controllers/GithubWebhook.js";
 
 const route = Router();
 
@@ -36,5 +38,8 @@ route.post("/embed-pdf", embedFile);
 route.post("/send-email-invite", SendEmailInvite);
 route.get("/get-people-collaborate/:chatId", GetPeopleCollaborate);
 route.post("/remove-collaborator", RemoveCollaborator);
+route.get("/list-github-repo", ListGithubRepo);
+route.get("/enable-disable-code-review/:repoId", EnableDisableCodeReview);
+route.post("/webhooks/github", GithubWebhook);
 
 export default route;

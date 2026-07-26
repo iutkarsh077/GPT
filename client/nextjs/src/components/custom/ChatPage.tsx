@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { Switch } from "@/components/ui/switch"
-import { ArrowUp, Loader2, Paperclip, Share2, UserRound, Users, X } from "lucide-react";
+import { ArrowUp, Code, EllipsisVertical, Loader2, Paperclip, Share2, UserRound, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/ChatContext";
@@ -24,6 +24,7 @@ import AssistantMessageSkeleton from "./AssistantMessageSkeleton";
 import { TextGenerateEffect } from "../ui/text-generate-effect";
 import { cn } from "@/lib/utils";
 import CollaboratePeopleChat from "./CollaboratePeopleChat";
+import ListGithubRepo from "./ListGithubRepo";
 
 const markdownRemarkPlugins = [remarkGfm];
 
@@ -59,13 +60,13 @@ type MessageItemProps = {
   message: {
     _id?: string;
     user?:
-      | string
-      | {
-          _id?: string;
-          avatar?: string | null;
-          displayName?: string | null;
-          username?: string | null;
-        };
+    | string
+    | {
+      _id?: string;
+      avatar?: string | null;
+      displayName?: string | null;
+      username?: string | null;
+    };
     query: string;
     content: string;
     senderAvatar?: string | null;
@@ -76,6 +77,20 @@ type MessageItemProps = {
   currentUserAvatar?: string | null;
   currentUserName: string;
 };
+
+
+export interface IGithubRepo {
+  id: string;
+  _id: string;
+  name: string;
+  fullName: string;
+  owner: string;
+  private: boolean;
+  defaultBranch: string;
+  enableCodeReview: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const getMessageSenderId = (
   user?: MessageItemProps["message"]["user"],
@@ -107,96 +122,96 @@ const MessageItem = memo(
     const senderName = isOwnMessage
       ? currentUserName
       : message.senderName ||
-        populatedSender?.displayName ||
-        populatedSender?.username ||
-        "Collaborator";
+      populatedSender?.displayName ||
+      populatedSender?.username ||
+      "Collaborator";
 
     return (
-    <div className="flex flex-col gap-7">
-      <div className="flex justify-end gap-3">
-        <div className="max-w-[min(90%,42rem)] rounded-lg bg-primary px-4 py-3 text-sm leading-6 text-primary-foreground">
-          {!isOwnMessage && (
-            <p className="mb-1 text-[10px] uppercase tracking-wide opacity-70">
-              {senderName}
-            </p>
-          )}
-          {message.query}
+      <div className="flex flex-col gap-7">
+        <div className="flex justify-end gap-3">
+          <div className="max-w-[min(90%,42rem)] rounded-lg bg-primary px-4 py-3 text-sm leading-6 text-primary-foreground">
+            {!isOwnMessage && (
+              <p className="mb-1 text-[10px] uppercase tracking-wide opacity-70">
+                {senderName}
+              </p>
+            )}
+            {message.query}
+          </div>
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sky-600 text-white">
+            {senderAvatar ? (
+              <img
+                src={senderAvatar}
+                alt={senderName}
+                className="size-full object-cover rounded-md"
+              />
+            ) : (
+              <UserRound className="size-4" />
+            )}
+          </div>
         </div>
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sky-600 text-white">
-          {senderAvatar ? (
-            <img
-              src={senderAvatar}
-              alt={senderName}
-              className="size-full object-cover rounded-md"
-            />
-          ) : (
-            <UserRound className="size-4" />
-          )}
-        </div>
-      </div>
 
-      {message.content?.trim() ? (
-        <div className="flex gap-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
-            <FaInfinity className="size-4" />
+        {message.content?.trim() ? (
+          <div className="flex gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
+              <FaInfinity className="size-4" />
+            </div>
+            <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
+              <ReactMarkdown
+                remarkPlugins={markdownRemarkPlugins}
+                components={{
+                  p: ({ children }) => (
+                    <p className="mb-3 last:mb-0">
+                      {renderGeneratedText(children, isAnimated)}
+                    </p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-foreground">
+                      {renderGeneratedText(
+                        children,
+                        isAnimated,
+                        "font-semibold text-foreground",
+                      )}
+                    </strong>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => <li>{children}</li>,
+                  code: ({ children }) => (
+                    <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
+                      {children}
+                    </code>
+                  ),
+                  pre: ({ children }) => (
+                    <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
+                      {children}
+                    </pre>
+                  ),
+                  a: ({ children, href }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-sky-700 underline underline-offset-2"
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           </div>
-          <div className="max-w-[min(90%,42rem)] rounded-lg bg-muted px-4 py-3 text-sm leading-6 text-foreground">
-            <ReactMarkdown
-              remarkPlugins={markdownRemarkPlugins}
-              components={{
-                p: ({ children }) => (
-                  <p className="mb-3 last:mb-0">
-                    {renderGeneratedText(children, isAnimated)}
-                  </p>
-                ),
-                strong: ({ children }) => (
-                  <strong className="font-semibold text-foreground">
-                    {renderGeneratedText(
-                      children,
-                      isAnimated,
-                      "font-semibold text-foreground",
-                    )}
-                  </strong>
-                ),
-                ul: ({ children }) => (
-                  <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">
-                    {children}
-                  </ul>
-                ),
-                ol: ({ children }) => (
-                  <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">
-                    {children}
-                  </ol>
-                ),
-                li: ({ children }) => <li>{children}</li>,
-                code: ({ children }) => (
-                  <code className="rounded bg-background px-1.5 py-0.5 font-mono text-[0.9em]">
-                    {children}
-                  </code>
-                ),
-                pre: ({ children }) => (
-                  <pre className="mb-3 overflow-x-auto rounded-md bg-background p-3 font-mono text-xs last:mb-0">
-                    {children}
-                  </pre>
-                ),
-                a: ({ children, href }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-sky-700 underline underline-offset-2"
-                  >
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-          </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null}
+      </div>
     );
   },
 );
@@ -234,7 +249,11 @@ const ChatPage = () => {
   const maxFileSize = 10 * 1024 * 1024; // 10MB
   const [isCollaboratePeopleChatOpen, setIsCollaboratePeopleChatOpen] = useState(false);
   const [isGithubAgentOn, setIsGithubAgentOn] = useState(false);
-  
+  const [openDropDownMenu, setOpenDropDownMenu] = useState(false);
+  const [githubReposList, setGithubReposList] = useState<IGithubRepo[] | null>(null);
+  const [isListGithubRepoOpen, setIsListGithubRepoOpen] = useState(false);
+  const [isGithubReposLoading, setIsGithubReposLoading] = useState(false);
+
   useEffect(() => {
     refForChat.current?.scrollIntoView({
       behavior: "smooth",
@@ -346,30 +365,27 @@ const ChatPage = () => {
     }
   };
 
-  console.log("user is: ", user);
-  console.log("chatId is: ", chatId);
-
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      if(file.size > maxFileSize) {
+      if (file.size > maxFileSize) {
         toast.error("File size is too large");
         return;
       }
-      if(!allowedFileTypes.includes(file.type)) {
+      if (!allowedFileTypes.includes(file.type)) {
         toast.error("PDF file only is allowed");
         return;
       }
       setIsFileUploading(true);
-      console.log(file);
+      // console.log(file);
       setFileUploaded(file);
       const response = await api.post("/api/get-upload-url", {
         fileName: file.name,
         contentType: file.type,
       });
-      console.log("upload url: ", response.data);
+      // console.log("upload url: ", response.data);
 
 
       const uploadResponse = await fetch(response.data.uploadUrl, {
@@ -412,13 +428,36 @@ const ChatPage = () => {
 
       toast.success("File uploaded and embedded successfully");
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setFileUploaded(null);
       toast.error("Failed to upload file");
     } finally {
       setIsFileUploading(false);
     }
   }
+
+
+  const GetAllGithubRepos = async () => {
+    try {
+      setIsGithubReposLoading(true);
+      setIsListGithubRepoOpen(true);
+
+      if (githubReposList && githubReposList.length > 0) {
+        return;
+      }
+      const response = await api.get("/api/list-github-repo");
+      if (response.status !== 200) {
+        throw new Error("Failed to get all github repos");
+      }
+      setGithubReposList(response.data.data);
+    } catch (error) {
+      // console.log(error);
+      toast.error("Failed to get all github repos");
+      return null;
+    } finally {
+      setIsGithubReposLoading(false);
+    }
+  };
 
   return (
     <div className="flex h-svh min-h-0 flex-col bg-background">
@@ -547,9 +586,9 @@ const ChatPage = () => {
         >
           {fileUploaded && (
             <div className="flex items-center gap-2 bg-gray-100 max-w-fit px-2 py-1 rounded-md border border-gray-300">
-               {isFileUploading && (
+              {isFileUploading && (
                 <Loader2 className="size-4 animate-spin text-black" />
-               )}
+              )}
               <span className="text-sm text-black font-medium">
                 {fileUploaded.name}
               </span>
@@ -595,11 +634,43 @@ const ChatPage = () => {
               <span className="text-sm text-black font-medium whitespace-nowrap">Github Agent</span>
               <Switch checked={isGithubAgentOn} onCheckedChange={setIsGithubAgentOn} />
             </div>
-            {String(chatId?.ownerId) === String(user?._id) && (
-              <Button variant="outline" className="gap-1.5" onClick={()=>setIsCollaboratePeopleChatOpen(true)}>
-                <Users className="size-4" />
-              </Button>
-            )}
+            {
+              String(chatId?.ownerId) === String(user?._id) && (
+                <div className="relative">
+                  <EllipsisVertical
+                    className="size-4 cursor-pointer"
+                    onClick={() => setOpenDropDownMenu(!openDropDownMenu)}
+                  />
+                  <div className="absolute bottom-10 right-0 mt-1 bg-white rounded-md p-2 shadow">
+                    {openDropDownMenu && (
+                      <div className="flex flex-col items-start">
+                        <Button
+                          variant="ghost"
+                          className="gap-1.5 w-full justify-start hover:cursor-pointer"
+                          onClick={() => setIsCollaboratePeopleChatOpen(true)}
+                        >
+                          <Users className="size-4" />
+                          Collaborate with people
+                        </Button>
+                        <Button
+                          onClick={GetAllGithubRepos}
+                          variant="ghost"
+                          className="gap-1.5 w-full justify-start hover:cursor-pointer"
+                          disabled={isGithubReposLoading}
+                        >
+                          {isGithubReposLoading ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Code className="size-4" />
+                          )}
+                          Code Review
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            }
             <Button
               type="submit"
               size="icon"
@@ -613,8 +684,16 @@ const ChatPage = () => {
       </div>
 
       {isCollaboratePeopleChatOpen && (
-        <CollaboratePeopleChat onClose={()=>setIsCollaboratePeopleChatOpen(false)} isOpen={isCollaboratePeopleChatOpen} chatId={chatId?.chatId || ""} />
+        <CollaboratePeopleChat onClose={() => setIsCollaboratePeopleChatOpen(false)} isOpen={isCollaboratePeopleChatOpen} chatId={chatId?.chatId || ""} />
       )}
+
+      <ListGithubRepo
+        isOpen={isListGithubRepoOpen}
+        onClose={() => setIsListGithubRepoOpen(false)}
+        repos={githubReposList}
+        isLoading={isGithubReposLoading}
+        setRepos={setGithubReposList}
+      />
     </div>
   );
 };

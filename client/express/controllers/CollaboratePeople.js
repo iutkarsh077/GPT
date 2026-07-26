@@ -63,15 +63,18 @@ export const SendEmailInvite = async (req, res) => {
     });
 
     if (!sendEmail) {
+      console.log("Failed to send email");
       return res
         .status(500)
         .json({ message: "Failed to send email", status: false });
     }
 
+    console.log("sendEmail: ", sendEmail);
+
     const addPeopleCollaborate = await ChatSession.findOneAndUpdate(
       { chatId, user: req.user._id },
       { $addToSet: { peopleCollaborate: normalizedInviteEmail } },
-      { new: true },
+      { returnDocument: "after" },
     );
 
     if (!addPeopleCollaborate) {
