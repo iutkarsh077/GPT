@@ -405,6 +405,7 @@ const ChatPage = () => {
         return;
       }
 
+      
       const embedResponse = await api.post("/api/embed-pdf", {
         key: response.data.key,
         chatId,
