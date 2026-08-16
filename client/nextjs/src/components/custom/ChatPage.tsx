@@ -342,12 +342,19 @@ const ChatPage = () => {
           ownerId: result.data.chatSession.ownerId
             ? String(result.data.chatSession.ownerId)
             : chatId?.ownerId || String(user?._id || ""),
+          pinChat: Boolean(result.data.chatSession.pinChat),
         };
         setChatId(chatSession);
-        setAllChatId((prev) => [
-          chatSession,
-          ...prev.filter((chat) => chat.chatId !== chatSession.chatId),
-        ]);
+        setAllChatId((prev) => {
+          const existing = prev.find((chat) => chat.chatId === chatSession.chatId);
+          return [
+            {
+              ...chatSession,
+              pinChat: chatSession.pinChat || Boolean(existing?.pinChat),
+            },
+            ...prev.filter((chat) => chat.chatId !== chatSession.chatId),
+          ];
+        });
         if (chatId?.chatId !== chatSession.chatId) {
           router.replace(`/chat/${chatSession.chatId}`);
         }
@@ -415,12 +422,19 @@ const ChatPage = () => {
           ownerId: embedResponse.data.chatSession.ownerId
             ? String(embedResponse.data.chatSession.ownerId)
             : chatId?.ownerId || String(user?._id || ""),
+          pinChat: Boolean(embedResponse.data.chatSession.pinChat),
         };
         setChatId(chatSession);
-        setAllChatId((prev) => [
-          chatSession,
-          ...prev.filter((chat) => chat.chatId !== chatSession.chatId),
-        ]);
+        setAllChatId((prev) => {
+          const existing = prev.find((chat) => chat.chatId === chatSession.chatId);
+          return [
+            {
+              ...chatSession,
+              pinChat: chatSession.pinChat || Boolean(existing?.pinChat),
+            },
+            ...prev.filter((chat) => chat.chatId !== chatSession.chatId),
+          ];
+        });
         if (chatId?.chatId !== chatSession.chatId) {
           router.replace(`/chat/${chatSession.chatId}`);
         }

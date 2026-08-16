@@ -52,6 +52,7 @@ export interface ChatId {
   chatId: string;
   title: string;
   ownerId?: string;
+  pinChat?: boolean;
 }
 
 type AuthContextType = {
@@ -210,12 +211,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           chatId: payload.chatSession!.chatId,
           title: payload.chatSession!.title || prev?.title || "New Chat",
           ownerId: payload.chatSession!.ownerId || prev?.ownerId,
+          pinChat:
+            payload.chatSession!.pinChat ?? prev?.pinChat ?? false,
         }));
         setAllChatId((prev) => {
+          const existing = prev.find(
+            (c) => c.chatId === payload.chatSession!.chatId,
+          );
           const next = {
             chatId: payload.chatSession!.chatId,
             title: payload.chatSession!.title || "New Chat",
             ownerId: payload.chatSession!.ownerId,
+            pinChat:
+              payload.chatSession!.pinChat ?? existing?.pinChat ?? false,
           };
           return [next, ...prev.filter((c) => c.chatId !== next.chatId)];
         });

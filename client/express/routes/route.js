@@ -5,7 +5,7 @@ import passport from "passport";
 import Logout from "../controllers/LogoutUser.js";
 import GetUser from "../controllers/GetUser.js";
 import QueryResolver from "../controllers/QueryResolver.js";
-import CreateChatSession from "../controllers/CreateChatSession.js";
+import CreateChatSession, { DeleteChatSession, PinUnpinChatSession, UpdateChatSessionTitle } from "../controllers/CreateChatSession.js";
 import GetAllChatSessions from "../controllers/GetAllChatSessions.js";
 import GetAllChatByChatId from "../controllers/GetAllChatByChatId.js";
 import GetSharedChat from "../controllers/GetSharedChat.js";
@@ -41,5 +41,8 @@ route.post("/remove-collaborator", RemoveCollaborator);
 route.get("/list-github-repo", ListGithubRepo);
 route.get("/enable-disable-code-review/:repoId", EnableDisableCodeReview);
 route.post("/webhooks/github", GithubWebhook);
+route.patch("/update-chat-session-title", UpdateChatSessionTitle);
+route.delete("/delete-chat-session/:chatId", DeleteChatSession);
+route.post("/pin-unpin-chat-session", PinUnpinChatSession);
 
 export default route;
