@@ -53,4 +53,99 @@ const CreateChatSession = async (req, res) => {
 };
 
 
+export const UpdateChatSessionTitle = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        status: false,
+        message: "Unauthorized",
+      });
+    }
+    const { chatId, title } = req.body;
+
+    console.log("chatId", chatId);
+    console.log("title", title);
+    const chatSession = await ChatSession.findOneAndUpdate({ chatId: chatId }, { title }, { new: true });
+
+    if (!chatSession) {
+      return res.status(404).json({
+        status: false,
+        message: "Chat session not found",
+      });
+    }
+    return res.status(200).json({
+      status: true,
+      message: "Chat session title updated",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Failed to update chat session title",
+    });
+  }
+} 
+
+
+export const DeleteChatSession = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        status: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const chatId = req.params.chatId;
+    const chatSession = await ChatSession.findOneAndDelete({ chatId: chatId });
+    if (!chatSession) {
+      return res.status(404).json({
+        status: false,
+        message: "Chat session not found",
+      });
+    }
+    return res.status(200).json({
+      status: true,
+      message: "Chat session deleted",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Failed to delete chat session",
+    });
+  }
+} 
+
+export const PinUnpinChatSession = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        status: false,
+        message: "Unauthorized",
+      });
+    }
+    const { chatId } = req.body;
+
+    const findChatSession = await ChatSession.findOne({ chatId: chatId });
+    if (!findChatSession) {
+      return res.status(404).json({
+        status: false,
+        message: "Chat session not found",
+      });
+    }
+    const chatSession = await ChatSession.findOneAndUpdate({ chatId: chatId }, { pinChat: !findChatSession.pinChat }, { new: true });
+
+    
+    return res.status(200).json({
+      status: true,
+      message: `Chat session ${chatSession.pinChat ? "pinned" : "unpinned"}`,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Failed to pin chat session",
+    });
+  }
+} 
+
+
 export default CreateChatSession;

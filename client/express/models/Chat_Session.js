@@ -63,6 +63,11 @@ const ChatSessionSchema = new Schema(
       type: [String],
       default: [],
     },
+    pinChat: {
+      type: Boolean,
+      default: false,
+      index: true,
+    }
   },
   {
     timestamps: true,

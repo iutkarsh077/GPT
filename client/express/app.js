@@ -37,7 +37,7 @@ app.use(sessionMiddleware);
 app.use(
   cors({
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     origin: [process.env.FRONT_END_URI],
   }),
 );

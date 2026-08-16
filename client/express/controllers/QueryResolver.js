@@ -179,6 +179,7 @@ const QueryResolver = async (req, res) => {
         chatId: chatSession.chatId,
         title: chatSession.title,
         ownerId: String(chatSession.user),
+        pinChat: Boolean(chatSession.pinChat),
       },
     };
 

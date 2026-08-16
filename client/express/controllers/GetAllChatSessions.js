@@ -50,12 +50,14 @@ const GetAllChatSessions = async (req, res) => {
       chatId: 1,
       title: 1,
       user: 1,
+      pinChat: 1,
     }).sort({ createdAt: -1 });
 
     const result = sessions.map((session) => ({
       chatId: session.chatId,
       title: session.title,
       ownerId: String(session.user),
+      pinChat: session.pinChat,
     }));
 
     return res.status(200).json({
