@@ -118,7 +118,7 @@ const CustomSidebar = () => {
       setIsLoading(true);
       setAllChatId((prev) => prev.map((chat) => chat.chatId === selectedChat?.chatId ? { ...chat, title: editTitle } : chat));
       setOpenEditDialog(false);
-      const response = await api.patch("/update-chat-session-title", {
+      const response = await api.patch("/api/update-chat-session-title", {
         chatId: selectedChat?.chatId,
         title: editTitle,
       })
@@ -140,7 +140,7 @@ const CustomSidebar = () => {
       setOpenDeleteDialog(false);
       setIsLoading(true);
       setAllChatId((prev) => prev.filter((chat) => chat.chatId !== selectedChat?.chatId));
-      const response = await api.delete(`/delete-chat-session/${selectedChat?.chatId}`);
+      const response = await api.delete(`/api/delete-chat-session/${selectedChat?.chatId}`);
       handleCreateNewChat();
       if (!response.status) {
         throw new Error(response.data.message);
@@ -156,7 +156,7 @@ const CustomSidebar = () => {
     e.stopPropagation();
     try {
       setIsLoading(true);
-      const response = await api.post("/pin-unpin-chat-session", {
+      const response = await api.post("/api/pin-unpin-chat-session", {
         chatId: chatId,
       });
       if (!response.status) {
