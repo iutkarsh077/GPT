@@ -8,10 +8,10 @@ Built as three services: **Next.js** (UI) · **Express** (auth, sessions, MongoD
 
 Watch the project demo:
 
-🔗 **https://youtu.be/Td0-T3-bkGg**
+🔗 **[https://youtu.be/Td0-T3-bkGg](https://youtu.be/O5aQqnTEZac?si=6w0sC7T6iBYnBbNp)**
 
-<video src="https://drive.google.com/uc?export=download&id=13Q2S9cYKqMYD858XmX1hyywBVRHHwswY" controls width="100%">
-  <a href="https://drive.google.com/file/d/13Q2S9cYKqMYD858XmX1hyywBVRHHwswY/view?usp=sharing">Watch demo video</a>
+<video src="[https://drive.google.com/uc?export=download&id=13Q2S9cYKqMYD858XmX1hyywBVRHHwswY](https://youtu.be/O5aQqnTEZac?si=6w0sC7T6iBYnBbNp)" controls width="100%">
+  <a href="[https://drive.google.com/file/d/13Q2S9cYKqMYD858XmX1hyywBVRHHwswY/view?usp=sharing](https://youtu.be/O5aQqnTEZac?si=6w0sC7T6iBYnBbNp)">Watch demo video</a>
 </video>
 
 ![GPT chat UI — sidebar, conversation, and message input](https://res.cloudinary.com/dakddv1pm/image/upload/v1777199107/posts/ffzzpmpzaiien3bdkjmw.png)
