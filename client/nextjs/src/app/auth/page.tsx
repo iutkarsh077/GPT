@@ -14,6 +14,14 @@ const AuthUser = () => {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Sign in to keep your conversations, history, and workspace in sync.
           </p>
+          <a
+            href="https://youtu.be/O5aQqnTEZac?si=6w0sC7T6iBYnBbNp"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-block text-sm text-primary underline underline-offset-4"
+          >
+            Watch the demo video
+          </a>
         </div>
 
         <div className="rounded-lg border bg-card p-3 shadow-sm">
